@@ -1,0 +1,33 @@
+name: SpotBugs with Reviewdog
+
+on: [pull_request]
+
+jobs:
+  spotbugs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Run SpotBugs
+        run: mvn clean compile spotbugs:spotbugs  # Tạo report XML tại target/spotbugsXml.xml
+      - name: Run reviewdog
+        if: always()  # Chạy ngay cả khi SpotBugs fail
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Cài đặt reviewdog CLI (từ release chính thức)
+          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /tmp/reviewdog
+          export PATH="$PATH:/tmp/reviewdog"
+          # Chạy reviewdog với SpotBugs format (parse XML và post comments)
+          reviewdog -f=spotbugs -reporter=github-pr-review -diff="git diff HEAD~1" -level=error
+        # Lưu ý: -f=spotbugs dùng built-in formatter cho SpotBugs XML
