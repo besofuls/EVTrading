@@ -48,6 +48,11 @@ public class UserService {
                 .filter(user -> user.getPassword().equals(password));
     }
 
+    // New: login and generate token subject (username)
+    public Optional<String> loginWithToken(String username, String password, com.evtrading.swp391.security.JwtUtil jwtUtil) {
+        return login(username, password).map(user -> jwtUtil.generateToken(user.getUsername()));
+    }
+
     public User register(com.evtrading.swp391.dto.RegisterRequestDTO registerRequestDTO) {
         if (userRepository.findByUsername(registerRequestDTO.getUsername()).isPresent() ||
                 userRepository.findByEmail(registerRequestDTO.getEmail()).isPresent()) {
