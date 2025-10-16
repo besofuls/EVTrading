@@ -17,6 +17,9 @@ import com.evtrading.swp391.entity.Role;
 public class UserController {
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private com.evtrading.swp391.security.JwtUtil jwtUtil;
 
     // Lấy danh sách tất cả user
     @GetMapping
@@ -59,13 +62,16 @@ public class UserController {
 
     //api login
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return userService.login(loginRequestDTO.getUsername(), loginRequestDTO.getPassword())
-                .map(ResponseEntity::ok)
-                //đăng nhập thành công trả về 200 OK
+                .map(user -> {
+                    String token = jwtUtil.generateToken(user.getUsername());
+                    java.util.Map<String, Object> body = new java.util.HashMap<>();
+                    body.put("token", token);
+                    body.put("user", user);
+                    return ResponseEntity.ok(body);
+                })
                 .orElseGet(() -> ResponseEntity.status(401).build());
-                //đăng nhập thất bại trả về 401 Unauthorized
-
     }
 
     //api register
@@ -131,6 +137,12 @@ public class UserController {
         user.setStatus("Active");
         User saved = userService.createUser(user);
         return ResponseEntity.ok(saved);
+    }
+     @Autowired
+    private UserService service; // Không check null
+    @GetMapping("/user")
+    public String getUser() {
+        return service.getName(); // Potential NullPointerException
     }
 
 }
