@@ -19,15 +19,13 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Run SpotBugs
-        run: mvn clean compile spotbugs:spotbugs  # Tạo report XML tại target/spotbugsXml.xml
+        run: mvn clean compile spotbugs:spotbugs  # Đảm bảo tạo target/spotbugsXml.xml
       - name: Run reviewdog
-        if: always()  # Chạy ngay cả khi SpotBugs fail
+        if: always()
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Cài đặt reviewdog CLI (từ release chính thức)
-          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /tmp/reviewdog
+          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /tmp/reviewdog --latest  # Cập nhật phiên bản mới nhất
           export PATH="$PATH:/tmp/reviewdog"
-          # Chạy reviewdog với SpotBugs format (parse XML và post comments)
-          reviewdog -f=spotbugs -reporter=github-pr-review -diff="git diff HEAD~1" -level=error
-        # Lưu ý: -f=spotbugs dùng built-in formatter cho SpotBugs XML
+          # Sử dụng formatter checkstyle (tạm thời) vì SpotBugs XML gần giống
+          reviewdog -f=checkstyle -reporter=github-pr-review -diff="git diff HEAD~1" -level=error < target/spotbugsXml.xml
