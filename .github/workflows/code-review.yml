@@ -1,0 +1,30 @@
+name: SpotBugs with Reviewdog
+
+on: [pull_request]
+
+jobs:
+  spotbugs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Run SpotBugs
+        run: mvn clean compile spotbugs:spotbugs
+      - name: Run reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: reviewdog/action-spotbugs@v1
+        with:
+          spotbugs_report: 'target/spotbugsXml.xml'
+          reporter: github-pr-review # Post comments vào PR
+          level: error # Chỉ báo lỗi nghiêm trọng
