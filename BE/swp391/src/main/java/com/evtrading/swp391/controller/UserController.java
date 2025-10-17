@@ -64,7 +64,7 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return userService.login(loginRequestDTO.getUsername(), loginRequestDTO.getPassword())
                 .map(user -> {
-                   
+                    // to trigger SpotBugs
                     String token = null;
                     try {
                         token = jwtUtil.generateToken(user.getUsername());
