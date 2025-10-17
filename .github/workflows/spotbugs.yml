@@ -30,8 +30,8 @@ jobs:
           export PATH="$PATH:/tmp/reviewdog"
           ls -la target/ || echo "Target directory not found in BE/swp391"
           if [ -f target/spotbugsXml.xml ]; then
-            # Thử parser generic XML
-            reviewdog -f=xml -reporter=github-pr-review -diff="git diff HEAD~1" -level=error < target/spotbugsXml.xml
+            # Sử dụng error format cho SpotBugs XML
+            reviewdog -efm="%f:%l: [%t] %m" -reporter=github-pr-review -diff="git diff HEAD~1" -level=error < target/spotbugsXml.xml
           else
             echo "Error: spotbugsXml.xml not found in BE/swp391"
             exit 1
