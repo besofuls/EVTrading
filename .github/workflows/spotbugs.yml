@@ -28,12 +28,12 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /tmp/reviewdog v0.21.0
           export PATH="$PATH:/tmp/reviewdog"
-          # Kiểm tra file trong thư mục BE/swp391
           ls -la target/ || echo "Target directory not found in BE/swp391"
           if [ -f target/spotbugsXml.xml ]; then
-            reviewdog -f=checkstyle -reporter=github-pr-review -diff="git diff HEAD~1" -level=error < target/spotbugsXml.xml
+            # Thử parser generic XML
+            reviewdog -f=xml -reporter=github-pr-review -diff="git diff HEAD~1" -level=error < target/spotbugsXml.xml
           else
             echo "Error: spotbugsXml.xml not found in BE/swp391"
             exit 1
           fi
-        working-directory: BE/swp391  # Thêm dòng này để chạy trong BE/swp391
+        working-directory: BE/swp391
