@@ -138,11 +138,6 @@ public class UserController {
         User saved = userService.createUser(user);
         return ResponseEntity.ok(saved);
     }
-     @Autowired
-    private UserService service; // Không check null
-    @GetMapping("/user")
-    public String getUser() {
-        return service.getNamasdasdse(); // Potential NullPointerException
-    }
+     
 
 }

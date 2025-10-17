@@ -20,6 +20,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Run SpotBugs
         run: mvn clean compile spotbugs:spotbugs
+        working-directory: BE/swp391  # Trỏ đến thư mục chứa pom.xml và src
       - name: Run reviewdog
         if: always()
         env:
