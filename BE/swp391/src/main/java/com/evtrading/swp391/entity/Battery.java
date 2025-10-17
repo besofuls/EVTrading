@@ -15,7 +15,7 @@ public class Battery {
     private Category category;
 
 
-    // Many batteries can belong to one brand (e.g., Panasonic, LG, etc.)
+    // Many batteries sdsscan belong to one brand (e.g., Panasonic, LG, etc.)
     @ManyToOne
     @JoinColumn(name = "brandID", nullable = false)
     private Brand brand;
