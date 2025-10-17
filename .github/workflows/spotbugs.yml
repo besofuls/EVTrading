@@ -26,7 +26,13 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Cài đặt reviewdog với tag cụ thể (ví dụ: v0.21.0) để tránh lỗi
           curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /tmp/reviewdog v0.21.0
           export PATH="$PATH:/tmp/reviewdog"
-          reviewdog -f=checkstyle -reporter=github-pr-review -diff="git diff HEAD~1" -level=error < target/spotbugsXml.xml
+          # Kiểm tra file trước khi chạy reviewdog
+          ls -la target/ || echo "Target directory not found"
+          if [ -f target/spotbugsXml.xml ]; then
+            reviewdog -f=checkstyle -reporter=github-pr-review -diff="git diff HEAD~1" -level=error < target/spotbugsXml.xml
+          else
+            echo "Error: spotbugsXml.xml not found"
+            exit 1
+          fi
