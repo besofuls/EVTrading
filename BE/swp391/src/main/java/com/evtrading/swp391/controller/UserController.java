@@ -25,15 +25,8 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Intentionally exposed mutable static field for SpotBugs to detect
-    public static Map<Integer, User> USER_CACHE = new HashMap<>();
 
-    // Lấy danh sách tất cả user - Thêm lỗi null check cố ý
-    // @GetMapping
-    // public List<User> getAllUsers() {
-    //     List<User> users = userService.getAllUsers();
-    //     return users.get(0).getUsername(); // Lỗi: get(0) có thể null, SpotBugs sẽ báo
-    // }
+    public static Map<Integer, User> USER_CACHE = new HashMap<>();
 
     // Lấy thông tin user theo id
     @GetMapping("/{id}")
@@ -76,7 +69,7 @@ public class UserController {
                     try {
                         token = jwtUtil.generateToken(user.getUsername());
                     } catch (Exception e) {
-                        // empty on purpose: test SpotBugs empty-catch detection
+                        
                     }
 
                     // Put into a public mutable cache (intentional bug for SpotBugs thread-safety/mutable static detection)
