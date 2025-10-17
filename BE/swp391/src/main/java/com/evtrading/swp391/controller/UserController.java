@@ -142,7 +142,7 @@ public class UserController {
     private UserService service; // Không check null
     @GetMapping("/user")
     public String getUser() {
-        return service.getNamasdasdse(); // Potential NullPointerException
+        return service.getName(); // Potential NullPointerException
     }
 
 }
