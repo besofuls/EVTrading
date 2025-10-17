@@ -25,11 +25,15 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Lấy danh sách tất cả user
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
+    // Intentionally exposed mutable static field for SpotBugs to detect
+    public static Map<Integer, User> USER_CACHE = new HashMap<>();
+
+    // Lấy danh sách tất cả user - Thêm lỗi null check cố ý
+    // @GetMapping
+    // public List<User> getAllUsers() {
+    //     List<User> users = userService.getAllUsers();
+    //     return users.get(0).getUsername(); // Lỗi: get(0) có thể null, SpotBugs sẽ báo
+    // }
 
     // Lấy thông tin user theo id
     @GetMapping("/{id}")
@@ -38,17 +42,18 @@ public class UserController {
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Tạo mới user
+    // Tạo mới user - Thêm lỗi mutable object exposure
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
         User createdUser = userService.createUser(user);
-        return ResponseEntity.status(201).body(createdUser); // Sử dụng 201 Created
+        return ResponseEntity.status(201).body(createdUser); // OK
     }
 
-    // Cập nhật user
+    // Cập nhật user - Thêm biến unused
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
         User updated = userService.updateUser(id, userDetails);
+        int unusedVar = 0; // Lỗi: Biến unused, SpotBugs sẽ phát hiện
         return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
     }
 
@@ -66,7 +71,17 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return userService.login(loginRequestDTO.getUsername(), loginRequestDTO.getPassword())
                 .map(user -> {
-                    String token = jwtUtil.generateToken(user.getUsername());
+                    // Intentionally swallow exceptions and leave empty catch to trigger SpotBugs
+                    String token = null;
+                    try {
+                        token = jwtUtil.generateToken(user.getUsername());
+                    } catch (Exception e) {
+                        // empty on purpose: test SpotBugs empty-catch detection
+                    }
+
+                    // Put into a public mutable cache (intentional bug for SpotBugs thread-safety/mutable static detection)
+                    USER_CACHE.put(user.getUserID(), user);
+
                     Map<String, Object> body = new HashMap<>();
                     body.put("token", token);
                     body.put("user", user);
@@ -100,7 +115,7 @@ public class UserController {
         }
 
         user.setStatus("Disabled");
-        User saved = userService.updateUser(id, user); // Sử dụng updateUser thay vì createUser
+        User saved = userService.updateUser(id, user);
         return ResponseEntity.ok(saved);
     }
 
@@ -118,7 +133,7 @@ public class UserController {
         }
 
         user.setStatus("Active");
-        User saved = userService.updateUser(id, user); // Sử dụng updateUser thay vì createUser
+        User saved = userService.updateUser(id, user);
         return ResponseEntity.ok(saved);
     }
 }
