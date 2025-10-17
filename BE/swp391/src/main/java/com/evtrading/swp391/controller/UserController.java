@@ -25,7 +25,7 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Intentionally exposed mutable static field for SpotBugs to detect
+    // Intentionally exposed mutable static field for SpotBugs detected
     public static Map<Integer, User> USER_CACHE = new HashMap<>();
 
     // Lấy danh sách tất cả user - Thêm lỗi null check cố ý
